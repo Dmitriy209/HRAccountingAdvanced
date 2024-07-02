@@ -14,7 +14,7 @@ namespace HRAccountingAdvanced
             const string CommandSearchLastName = "4";
             const string CommandExit = "exit";
 
-            Dictionary<string, List<string>> dossier = CreateStartDossiers();
+            Dictionary<string, List<string>> dossiers = CreateStartDossiers();
 
             bool isRunning = true;
 
@@ -32,19 +32,19 @@ namespace HRAccountingAdvanced
                 switch (userInput)
                 {
                     case CommandCreateFile:
-                        CreateFile(dossier);
+                        CreateFile(dossiers);
                         break;
 
                     case CommandShowDossiers:
-                        ShowDossiers(dossier);
+                        ShowDossiers(dossiers);
                         break;
 
                     case CommandDeleteFile:
-                        DeleteFile(dossier);
+                        DeleteFile(dossiers);
                         break;
 
                     case CommandSearchLastName:
-                        SearchLastName(dossier);
+                        SearchLastName(dossiers);
                         break;
 
                     case CommandExit:
@@ -62,10 +62,8 @@ namespace HRAccountingAdvanced
             Console.WriteLine("Вы вышли из программы. Спасибо, что воспользовались нашей программой учёта досье.");
         }
 
-        private static void CreateFile(Dictionary<string, List<string>> dossier)
+        private static void CreateFile(Dictionary<string, List<string>> dossiers)
         {
-            List<string> fullNames = new List<string>();
-
             bool isRunning = true;
 
             while (isRunning)
@@ -88,15 +86,16 @@ namespace HRAccountingAdvanced
 
                 if (userInput == buttonAccept)
                 {
-                    if (dossier.ContainsKey(jobTitle))
+                    if (dossiers.ContainsKey(jobTitle))
                     {
-                        tempName = dossier[jobTitle];
+                        tempName = dossiers[jobTitle];
                         tempName.Add(name);
-                        dossier[jobTitle] = tempName;
+                        dossiers[jobTitle] = tempName;
                     }
                     else
                     {
-                        dossier.Add(jobTitle, tempName);
+                        tempName.Add(name);
+                        dossiers.Add(jobTitle, tempName);
                     }
 
                     isRunning = false;
@@ -144,19 +143,23 @@ namespace HRAccountingAdvanced
             return jobTitle;
         }
 
-        private static void ShowDossiers(Dictionary<string, List<string>> dossier)
+        private static void ShowDossiers(Dictionary<string, List<string>> dossiers)
         {
             string separator = "-";
 
             int serialNumber = 0;
 
-            foreach (var itemDossier in dossier)
+            foreach (var dossier in dossiers)
             {
-                foreach (var itemList in itemDossier.Value)
+                Console.Write($"{dossier.Key}");
+
+                foreach (var fullName in dossier.Value)
                 {
-                    serialNumber ++;
-                    Console.WriteLine($"{serialNumber}{separator}{itemDossier.Key}{separator}{itemList}");
+                    serialNumber++;
+                    Console.Write($"{separator}{serialNumber}{separator}{fullName}");
                 }
+
+                Console.WriteLine();
             }
         }
 
@@ -165,75 +168,57 @@ namespace HRAccountingAdvanced
             Console.WriteLine("Такого варианта нет, пожалуйста попробуйте ввести команду снова.");
         }
 
-        private static void DeleteFile(Dictionary<string, List<string>> dossier)
+        private static void DeleteFile(Dictionary<string, List<string>> dossiers)
         {
-            ShowDossiers(dossier);
+            ShowDossiers(dossiers);
 
-            int index = ReadIndex(dossier);
+            List<string> value;
 
-            int serialNumber = -1;
+            string jobTitle = ReadJobTitle(dossiers, out value);
 
-            string keyDelete = "";
+            string fullName = ReadLastName(value);
 
-            bool isValueEmpty = false;
+            value.Remove(fullName);
 
-            foreach (var itemDossier in dossier)
-            {
-                foreach (var itemList in itemDossier.Value)
-                {
-                    serialNumber++;
-
-                    if (serialNumber == index)
-                    {
-                        itemDossier.Value.Remove(itemList);
-
-                        if (itemDossier.Value.Count == 0)
-                        {
-                            isValueEmpty = true;
-                            keyDelete = itemDossier.Key;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            if (isValueEmpty)
-                dossier.Remove(keyDelete);
+            if (value.Count == 0)
+                dossiers.Remove(jobTitle);
         }
 
-        private static int ReadIndex(Dictionary<string, List<string>> dossier)
+        private static string ReadLastName(List<string> value)
         {
-            bool isRunning = true;
+            string fullNameDelete = "";
 
-            int index = 0;
+            bool isRunning = true;
+            bool isFound = false;
 
             while (isRunning)
             {
-                Console.WriteLine("Чьё досье хотите удалить? Введите порядковый номер:");
+                foreach (string fullName in value)
+                    Console.WriteLine($"{fullName}");
+
+                Console.WriteLine("Чьё досье хотите удалить? Введите ФИО:");
                 string userInput = Console.ReadLine();
 
-                bool isSuccess = int.TryParse(userInput, out index);
-
-                index -= 1;
-
-                int serialNumber = 0;
-
-                foreach (var itemDossier in dossier)
+                foreach (string fullName in value)
                 {
-                    foreach (var itemList in itemDossier.Value)
-                        serialNumber++;
+                    if (userInput == fullName)
+                    {
+                        fullNameDelete = fullName;
+                        isFound = true;
+                        break;
+                    }
                 }
 
-                if (isSuccess && index >= 0 && index < serialNumber)
+                if (isFound)
                     isRunning = false;
                 else
-                    Console.WriteLine("Такого порядкового номера нет.");
+                    Console.WriteLine("Такой фамилии нет.");
             }
 
-            return index;
+            return fullNameDelete;
         }
 
-        private static void SearchLastName(Dictionary<string, List<string>> dossier)
+        private static void SearchLastName(Dictionary<string, List<string>> dossiers)
         {
             Console.WriteLine("Введите фамилию:");
             string userInput = Console.ReadLine();
@@ -242,20 +227,20 @@ namespace HRAccountingAdvanced
 
             char separator = ' ';
 
-            foreach (KeyValuePair<string, List<string>> item in dossier)
+            foreach (KeyValuePair<string, List<string>> item in dossiers)
             {
                 string key = item.Key;
 
                 List<string> fullNames = item.Value;
 
-                foreach (var fullname in fullNames)
+                foreach (var fullName in fullNames)
                 {
-                    string[] lastName = fullname.Split(separator);
+                    string[] lastName = fullName.Split(separator);
 
                     if (userInput == lastName[0])
                     {
                         Console.WriteLine($"По вашему запросу найдено:\n" +
-                            $"{item.Key} - {fullname}\n");
+                            $"{item.Key} - {fullName}\n");
 
                         isFound = true;
                         break;
@@ -288,6 +273,34 @@ namespace HRAccountingAdvanced
             dossier.Add(jobUnity, fullNamesUnity);
 
             return dossier;
+        }
+
+        private static string ReadJobTitle(Dictionary<string, List<string>> dossiers, out List<string> value)
+        {
+            bool isRunning = true;
+
+            value = new List<string>();
+
+            string jobTitle = "";
+
+            while (isRunning)
+            {
+                Console.WriteLine("Введите должность:");
+                string userInput = Console.ReadLine();
+
+                if (dossiers.TryGetValue(userInput, out value))
+                {
+                    jobTitle = userInput;
+
+                    isRunning = false;
+                }
+                else
+                {
+                    Console.WriteLine("Такой должности нет.");
+                }
+            }
+
+            return jobTitle;
         }
     }
 }

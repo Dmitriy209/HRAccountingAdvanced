@@ -52,7 +52,7 @@ namespace HRAccountingAdvanced
                         break;
 
                     default:
-                        ReadMessageError();
+                        ShowErrorMessage();
                         break;
                 }
             }
@@ -163,7 +163,7 @@ namespace HRAccountingAdvanced
             }
         }
 
-        private static void ReadMessageError()
+        private static void ShowErrorMessage()
         {
             Console.WriteLine("Такого варианта нет, пожалуйста попробуйте ввести команду снова.");
         }
@@ -176,7 +176,7 @@ namespace HRAccountingAdvanced
 
             string jobTitle = ReadJobTitle(dossiers, out value);
 
-            string fullName = ReadLastName(value);
+            string fullName = GetFullName(value);
 
             value.Remove(fullName);
 
@@ -184,7 +184,7 @@ namespace HRAccountingAdvanced
                 dossiers.Remove(jobTitle);
         }
 
-        private static string ReadLastName(List<string> value)
+        private static string GetFullName(List<string> value)
         {
             string fullNameDelete = "";
 
@@ -196,7 +196,7 @@ namespace HRAccountingAdvanced
                 foreach (string fullName in value)
                     Console.WriteLine($"{fullName}");
 
-                Console.WriteLine("Чьё досье хотите удалить? Введите ФИО:");
+                Console.WriteLine("Введите ФИО:");
                 string userInput = Console.ReadLine();
 
                 foreach (string fullName in value)
@@ -243,7 +243,6 @@ namespace HRAccountingAdvanced
                             $"{item.Key} - {fullName}\n");
 
                         isFound = true;
-                        break;
                     }
                 }
             }
